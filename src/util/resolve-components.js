@@ -20,6 +20,10 @@ export function resolveAsyncComponents (matched: Array<RouteRecord>): Function {
         pending++
 
         const resolve = once(resolvedDef => {
+          if (!resolvedDef) {
+            window.onerror(`router wtf ${matched.join(',')} ${def} ${_} ${match} ${key} ${pending} ${hasAsync} ${error}`)
+          }
+
           if (isESModule(resolvedDef)) {
             resolvedDef = resolvedDef.default
           }

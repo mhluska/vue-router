@@ -7,7 +7,7 @@
   typeof exports === 'object' && typeof module !== 'undefined' ? module.exports = factory() :
   typeof define === 'function' && define.amd ? define(factory) :
   (global = global || self, global.VueRouter = factory());
-}(this, function () { 'use strict';
+}(this, (function () { 'use strict';
 
   /*  */
 
@@ -610,7 +610,7 @@
    * @return {!function(Object=, Object=)}
    */
   function compile (str, options) {
-    return tokensToFunction(parse(str, options))
+    return tokensToFunction(parse(str, options), options)
   }
 
   /**
@@ -640,14 +640,14 @@
   /**
    * Expose a method for transforming tokens into the path function.
    */
-  function tokensToFunction (tokens) {
+  function tokensToFunction (tokens, options) {
     // Compile all the tokens into regexps.
     var matches = new Array(tokens.length);
 
     // Compile all the patterns before compilation.
     for (var i = 0; i < tokens.length; i++) {
       if (typeof tokens[i] === 'object') {
-        matches[i] = new RegExp('^(?:' + tokens[i].pattern + ')$');
+        matches[i] = new RegExp('^(?:' + tokens[i].pattern + ')$', flags(options));
       }
     }
 
@@ -760,7 +760,7 @@
    * @return {string}
    */
   function flags (options) {
-    return options.sensitive ? '' : 'i'
+    return options && options.sensitive ? '' : 'i'
   }
 
   /**
@@ -948,7 +948,8 @@
         (regexpCompileCache[path] = pathToRegexp_1.compile(path));
 
       // Fix #2505 resolving asterisk routes { name: 'not-found', params: { pathMatch: '/not-found' }}
-      if (params.pathMatch) { params[0] = params.pathMatch; }
+      // and fix #3106 so that you can work with location descriptor object having params.pathMatch equal to empty string
+      if (typeof params.pathMatch === 'string') { params[0] = params.pathMatch; }
 
       return filler(params, { pretty: true })
     } catch (e) {
@@ -1913,6 +1914,10 @@
           pending++;
 
           var resolve = once(function (resolvedDef) {
+            if (!resolvedDef) {
+              window.onerror(("router wtf " + (matched.join(',')) + " " + def + " " + _ + " " + match + " " + key + " " + pending + " " + hasAsync + " " + error));
+            }
+
             if (isESModule(resolvedDef)) {
               resolvedDef = resolvedDef.default;
             }
@@ -2919,4 +2924,4 @@
 
   return VueRouter;
 
-}));
+})));
